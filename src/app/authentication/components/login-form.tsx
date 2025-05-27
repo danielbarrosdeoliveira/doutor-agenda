@@ -33,7 +33,7 @@ const loginSchema = z.object({
 })
 
 const LoginForm = () => {
-  const registerForm = useForm<z.infer<typeof loginSchema>>({
+  const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -47,18 +47,15 @@ const LoginForm = () => {
 
   return (
     <Card>
-      <Form {...registerForm}>
-        <form
-          onSubmit={registerForm.handleSubmit(onSubmit)}
-          className="space-y-8"
-        >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>Faça o login para continuar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <FormField
-              control={registerForm.control}
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -71,7 +68,7 @@ const LoginForm = () => {
               )}
             />
             <FormField
-              control={registerForm.control}
+              control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>

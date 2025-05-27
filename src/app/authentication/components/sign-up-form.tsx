@@ -1,6 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -22,6 +24,7 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { authClient } from '@/lib/auth-client'
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, { message: 'Nome é obrigatório' }),
@@ -33,7 +36,9 @@ const registerSchema = z.object({
 })
 
 const SignUpForm = () => {
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
+  const router = useRouter()
+
+  const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
@@ -42,24 +47,33 @@ const SignUpForm = () => {
     }
   })
 
-  function onSubmit(values: z.infer<typeof registerSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
+    await authClient.signUp.email(
+      {
+        email: values.email,
+        password: values.password,
+        name: values.name
+      },
+      {
+        onSuccess: () => {
+          form.reset()
+          router.push('/dashboard')
+        }
+      }
+    )
   }
 
   return (
     <Card>
-      <Form {...registerForm}>
-        <form
-          onSubmit={registerForm.handleSubmit(onSubmit)}
-          className="space-y-8"
-        >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <CardHeader>
             <CardTitle>Criar conta</CardTitle>
             <CardDescription>Crie uma conta para continuar</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <FormField
-              control={registerForm.control}
+              control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
@@ -72,7 +86,7 @@ const SignUpForm = () => {
               )}
             />
             <FormField
-              control={registerForm.control}
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -85,13 +99,17 @@ const SignUpForm = () => {
               )}
             />
             <FormField
-              control={registerForm.control}
+              control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite sua senha" {...field} />
+                    <Input
+                      placeholder="Digite sua senha"
+                      {...field}
+                      type="password"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,8 +117,16 @@ const SignUpForm = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
-              Criar Conta
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                'Criar conta'
+              )}
             </Button>
           </CardFooter>
         </form>
