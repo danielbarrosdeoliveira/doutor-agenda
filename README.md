@@ -12,7 +12,7 @@
 
 ## Roteiro Aula 02: Autenticação e Configuração do Estabelecimento
 
-- [] Tela de Login e Criação de Conta
+- [x] Tela de Login e Criação de Conta
 - [] Login com e-mail e senha
 - [] Login com Google
 - [] Fundamentos do Next.js
