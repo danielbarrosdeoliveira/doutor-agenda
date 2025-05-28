@@ -47,7 +47,7 @@ const SignUpForm = () => {
     }
   })
 
-  async function onSubmit(values: z.infer<typeof registerSchema>) {
+  async function handleSubmit(values: z.infer<typeof registerSchema>) {
     await authClient.signUp.email(
       {
         email: values.email,
@@ -66,7 +66,7 @@ const SignUpForm = () => {
   return (
     <Card>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           <CardHeader>
             <CardTitle>Criar conta</CardTitle>
             <CardDescription>Crie uma conta para continuar</CardDescription>
@@ -119,7 +119,7 @@ const SignUpForm = () => {
           <CardFooter>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full cursor-pointer"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
