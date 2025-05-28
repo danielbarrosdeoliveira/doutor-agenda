@@ -10,11 +10,14 @@
     "typescript",
     "typescriptreact"
   ],
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
   "chat.agent.enabled": false,
   "chat.commandCenter.enabled": false,
   "chat.focusWindowOnConfirmation": false,
-  "telemetry.feedback.enabled": false
+  "telemetry.feedback.enabled": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "prettier.enable": true,
+  "tailwindCSS.experimental.classRegex": ["tw`([^`]*)", "tw=\"([^\"]*)"],
 }
