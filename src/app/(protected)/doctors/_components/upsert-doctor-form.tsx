@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { DialogDescription } from '@radix-ui/react-dialog'
+import { useAction } from 'next-safe-action/hooks'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { upsertDoctor } from '@/actions/upsert-doctor'
 import { Button } from '@/components/ui/button'
 import {
   DialogContent,
@@ -74,8 +77,22 @@ const UpsertDoctorForm = () => {
     }
   })
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log(data)
+  const upsertDoctorAction = useAction(upsertDoctor, {
+    onSuccess: () => {
+      toast.success('Médico cadastrado com sucesso')
+    },
+    onError: () => {
+      toast.error('Ocorreu um erro ao cadastrar o médico')
+    }
+  })
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    upsertDoctorAction.execute({
+      ...values,
+      availableFromWeekDay: parseInt(values.availableFromWeekDay),
+      availableToWeekDay: parseInt(values.availableToWeekDay),
+      appointmentPriceInCents: values.appointmentPrice * 100
+    })
   }
 
   return (
@@ -147,7 +164,7 @@ const UpsertDoctorForm = () => {
                   allowLeadingZeros={false}
                   thousandSeparator="."
                   customInput={Input}
-                  prefix="R$ "
+                  prefix="R$"
                 />
                 <FormMessage />
               </FormItem>
@@ -355,7 +372,9 @@ const UpsertDoctorForm = () => {
           />
 
           <DialogFooter>
-            <Button type="submit">Adicionar</Button>
+            <Button type="submit" disabled={upsertDoctorAction.isPending}>
+              {upsertDoctorAction.isPending ? 'Adicionando...' : 'Adicionar'}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

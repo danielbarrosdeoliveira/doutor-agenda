@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 
-import UpserDoctorForm from './upsert-doctor-form'
+import UpsertDoctorForm from './upsert-doctor-form'
 
 const AddDoctorButton = () => {
   return (
@@ -17,7 +17,7 @@ const AddDoctorButton = () => {
           Adicionar médico
         </Button>
       </DialogTrigger>
-      <UpserDoctorForm />
+      <UpsertDoctorForm />
     </Dialog>
   )
 }
