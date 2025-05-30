@@ -119,8 +119,8 @@ export const doctorsTable = pgTable('doctors', {
   availableToWeekDay: integer('available_to_week_day').notNull(),
   availableFromTime: time('available_from_time').notNull(),
   availableToTime: time('available_to_time').notNull(),
-  appointmentPriceInCents: integer('appointment_price_in_cents').notNull(),
   specialty: text('specialty').notNull(),
+  appointmentPriceInCents: integer('appointment_price_in_cents').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -129,7 +129,7 @@ export const doctorsTable = pgTable('doctors', {
 
 export const doctorsTableRelations = relations(
   doctorsTable,
-  ({ one, many }) => ({
+  ({ many, one }) => ({
     clinic: one(clinicsTable, {
       fields: [doctorsTable.clinicId],
       references: [clinicsTable.id]
@@ -147,9 +147,9 @@ export const patientsTable = pgTable('patients', {
     .references(() => clinicsTable.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   email: text('email').notNull(),
-  phoneNumber: text('phone_number').notNull().unique(),
-  sex: patientSexEnum('sex').notNull(),
+  phoneNumber: text('phone_number').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  sex: patientSexEnum('sex').notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
     .$onUpdate(() => new Date())
@@ -169,15 +169,15 @@ export const patientsTableRelations = relations(
 export const appointmentsTable = pgTable('appointments', {
   id: uuid('id').defaultRandom().primaryKey(),
   date: timestamp('date').notNull(),
+  clinicId: uuid('clinic_id')
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: 'cascade' }),
   patientId: uuid('patient_id')
     .notNull()
-    .references(() => patientsTable.id),
+    .references(() => patientsTable.id, { onDelete: 'cascade' }),
   doctorId: uuid('doctor_id')
     .notNull()
     .references(() => doctorsTable.id, { onDelete: 'cascade' }),
-  clinicId: uuid('clinic_id')
-    .notNull()
-    .references(() => clinicsTable.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -201,11 +201,3 @@ export const appointmentsTableRelations = relations(
     })
   })
 )
-
-// float -> tem como objetivo ECONOMIZAR MEMÓRIA
-// Postgres -> Existe um tipo de dado chamado numeric,
-// que é um tipo de dado que pode armazenar um número com uma quantidade de casas decimais exato, sem perder precisão;
-// A linguagem de Programação TS, deriva do JS, que internamente utiliza o float, então 0.7 + 0.1 não é igual a 0.8
-// Logo quando lidamos com valores monetários, devemos salvar em inteiros, por exemplo R$ 8,50 ficaria 850 e dividimos por 100 no Frontend
-// Podemos usar uma biblioteca chamada decimal.js para lidar com isso quando temos um sistema complexo que precisa de altíssima precisão
-// como por exemplo: Calcular juros compostos, descontos, mexer com Bitcoins, Etherium que possuiem muitas casas decimais
