@@ -14,17 +14,15 @@ export const usersTable = pgTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: boolean('email_verified')
-    .$defaultFn(() => false)
-    .notNull(),
+  emailVerified: boolean('email_verified').notNull(),
   image: text('image'),
-  createdAt: timestamp('created_at')
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull(),
-  updatedAt: timestamp('updated_at')
-    .$defaultFn(() => /* @__PURE__ */ new Date())
-    .notNull()
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
 })
+
+export const usersTableRelations = relations(usersTable, ({ many }) => ({
+  usersToClinics: many(usersToClinicsTable)
+}))
 
 export const sessionsTable = pgTable('sessions', {
   id: text('id').primaryKey(),
@@ -62,13 +60,9 @@ export const verificationsTable = pgTable('verifications', {
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date())
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at')
 })
-
-export const usersTableRelations = relations(usersTable, ({ many }) => ({
-  usersToClinics: many(usersToClinicsTable)
-}))
 
 export const clinicsTable = pgTable('clinics', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -78,13 +72,6 @@ export const clinicsTable = pgTable('clinics', {
     .defaultNow()
     .$onUpdate(() => new Date())
 })
-
-export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
-  doctors: many(doctorsTable),
-  patients: many(patientsTable),
-  appointments: many(appointmentsTable),
-  usersToClinics: many(usersToClinicsTable)
-}))
 
 export const usersToClinicsTable = pgTable('users_to_clinics', {
   userId: text('user_id')
@@ -113,6 +100,13 @@ export const usersToClinicsTableRelations = relations(
   })
 )
 
+export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
+  doctors: many(doctorsTable),
+  patients: many(patientsTable),
+  appointments: many(appointmentsTable),
+  usersToClinics: many(usersToClinicsTable)
+}))
+
 export const doctorsTable = pgTable('doctors', {
   id: uuid('id').defaultRandom().primaryKey(),
   clinicId: uuid('clinic_id')
@@ -133,12 +127,16 @@ export const doctorsTable = pgTable('doctors', {
     .$onUpdate(() => new Date())
 })
 
-export const doctorsTableRelations = relations(doctorsTable, ({ one }) => ({
-  clinic: one(clinicsTable, {
-    fields: [doctorsTable.clinicId],
-    references: [clinicsTable.id]
+export const doctorsTableRelations = relations(
+  doctorsTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [doctorsTable.clinicId],
+      references: [clinicsTable.id]
+    }),
+    appointments: many(appointmentsTable)
   })
-}))
+)
 
 export const patientSexEnum = pgEnum('patient_sex', ['male', 'female'])
 
@@ -157,12 +155,16 @@ export const patientsTable = pgTable('patients', {
     .$onUpdate(() => new Date())
 })
 
-export const patientsTableRelations = relations(patientsTable, ({ one }) => ({
-  clinic: one(clinicsTable, {
-    fields: [patientsTable.clinicId],
-    references: [clinicsTable.id]
+export const patientsTableRelations = relations(
+  patientsTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [patientsTable.clinicId],
+      references: [clinicsTable.id]
+    }),
+    appointments: many(appointmentsTable)
   })
-}))
+)
 
 export const appointmentsTable = pgTable('appointments', {
   id: uuid('id').defaultRandom().primaryKey(),
