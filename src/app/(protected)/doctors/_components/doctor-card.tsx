@@ -15,17 +15,13 @@ import { doctorsTable } from '@/db/schema'
 import { getAvailability } from '../_helpers/availabilty'
 import UpsertDoctorForm from './upsert-doctor-form'
 
-interface DoctorCardProps {
-  doctor: typeof doctorsTable.$inferInsert
-}
-
-const DoctorCard = ({ doctor }: DoctorCardProps) => {
+const DoctorCard = (doctor: typeof doctorsTable.$inferSelect) => {
   const doctorsInitials = doctor.name
     .split(' ')
     .map((name) => name[0])
     .join('')
 
-  const availability = () => getAvailability(doctor)
+  const availability = getAvailability(doctor)
 
   return (
     <Card>
