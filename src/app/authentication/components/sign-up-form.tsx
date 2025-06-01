@@ -127,7 +127,7 @@ const SignUpForm = () => {
           <CardFooter>
             <Button
               type="submit"
-              className="w-full cursor-pointer"
+              className="w-full"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (

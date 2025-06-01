@@ -61,11 +61,7 @@ export const ClinicForm = () => {
           )}
         />
         <DialogFooter>
-          <Button
-            type="submit"
-            className="cursor-pointer"
-            disabled={form.formState.isSubmitting}
-          >
+          <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && (
               <Loader2 className="h-4 w-4 animate-spin" />
             )}
