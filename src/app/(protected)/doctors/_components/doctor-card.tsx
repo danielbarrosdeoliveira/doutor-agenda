@@ -2,7 +2,7 @@
 
 import { Avatar } from '@radix-ui/react-avatar'
 import { DialogTrigger } from '@radix-ui/react-dialog'
-import { CalendarIcon, ClockIcon, DollarSignIcon } from 'lucide-react'
+import { CalendarIcon, ClockIcon } from 'lucide-react'
 
 import { AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Dialog } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { doctorsTable } from '@/db/schema'
+import { formatCurrencyInCents } from '@/helpers/currency'
 
 import { getAvailability } from '../_helpers/availabilty'
 import UpsertDoctorForm from './upsert-doctor-form'
@@ -48,11 +49,10 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
         </Badge>
         <Badge variant="outline">
           <ClockIcon className="mr-1" />
-          {doctor.availableFromTime} - {doctor.availableToTime}
+          {doctor.availableFromTime} às {doctor.availableToTime}
         </Badge>
         <Badge variant="outline">
-          <DollarSignIcon className="mr-1" />
-          {doctor.appointmentPriceInCents / 100}
+          {formatCurrencyInCents(doctor.appointmentPriceInCents)}
         </Badge>
       </CardContent>
       <Separator />
