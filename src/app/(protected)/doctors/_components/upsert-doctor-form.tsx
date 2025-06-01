@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { DialogDescription } from '@radix-ui/react-dialog'
+import { Loader2 } from 'lucide-react'
 import { useAction } from 'next-safe-action/hooks'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
@@ -10,6 +10,7 @@ import { upsertDoctor } from '@/actions/upsert-doctor'
 import { Button } from '@/components/ui/button'
 import {
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -32,63 +33,76 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { doctorsTable } from '@/db/schema'
 
 import { medicalSpecialities } from '../_constants'
 
 const formSchema = z
   .object({
-    name: z.string().trim().min(1, { message: 'Nome é obrigatório' }),
-    specialty: z
-      .string()
-      .trim()
-      .min(1, { message: 'Especialidade é obrigatório' }),
-    appointmentPrice: z
-      .number()
-      .positive({ message: 'Preço da consulta deve ser positivo' })
-      .min(1, { message: 'Preço da consulta é obrigatório' }),
+    name: z.string().trim().min(1, {
+      message: 'Nome é obrigatório.'
+    }),
+    specialty: z.string().trim().min(1, {
+      message: 'Especialidade é obrigatória.'
+    }),
+    appointmentPrice: z.number().min(1, {
+      message: 'Preço da consulta é obrigatório.'
+    }),
     availableFromWeekDay: z.string(),
     availableToWeekDay: z.string(),
-    availableFromTime: z
-      .string()
-      .min(1, { message: 'Hora inicial é obrigatória' }),
-    availableToTime: z.string().min(1, { message: 'Hora final é obrigatória' })
+    availableFromTime: z.string().min(1, {
+      message: 'Hora de início é obrigatória.'
+    }),
+    availableToTime: z.string().min(1, {
+      message: 'Hora de término é obrigatória.'
+    })
   })
   .refine(
     (data) => {
       return data.availableFromTime < data.availableToTime
     },
     {
-      message: 'Hora inicial deve ser menor que a hora final',
+      message:
+        'O horário de início não pode ser anterior ao horário de término.',
       path: ['availableToTime']
     }
   )
 
-const UpsertDoctorForm = () => {
+interface UpsertDoctorFormProps {
+  doctor?: typeof doctorsTable.$inferSelect
+  onSuccess?: () => void
+}
+
+const UpsertDoctorForm = ({ doctor, onSuccess }: UpsertDoctorFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
+    shouldUnregister: true,
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      specialty: '',
-      appointmentPrice: 0,
-      availableFromWeekDay: '1',
-      availableToWeekDay: '5',
-      availableFromTime: '',
-      availableToTime: ''
+      name: doctor?.name ?? '',
+      specialty: doctor?.specialty ?? '',
+      appointmentPrice: doctor?.appointmentPriceInCents
+        ? doctor.appointmentPriceInCents / 100
+        : 0,
+      availableFromWeekDay: doctor?.availableFromWeekDay?.toString() ?? '1',
+      availableToWeekDay: doctor?.availableToWeekDay?.toString() ?? '5',
+      availableFromTime: doctor?.availableFromTime ?? '',
+      availableToTime: doctor?.availableToTime ?? ''
     }
   })
-
   const upsertDoctorAction = useAction(upsertDoctor, {
     onSuccess: () => {
-      toast.success('Médico cadastrado com sucesso')
+      toast.success('Médico adicionado com sucesso.')
+      onSuccess?.()
     },
     onError: () => {
-      toast.error('Ocorreu um erro ao cadastrar o médico')
+      toast.error('Erro ao adicionar médico.')
     }
   })
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     upsertDoctorAction.execute({
       ...values,
+      id: doctor?.id,
       availableFromWeekDay: parseInt(values.availableFromWeekDay),
       availableToWeekDay: parseInt(values.availableToWeekDay),
       appointmentPriceInCents: values.appointmentPrice * 100
@@ -98,10 +112,13 @@ const UpsertDoctorForm = () => {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Adicionar Médico</DialogTitle>
-        <DialogDescription>Adicione um novo médico</DialogDescription>
+        <DialogTitle>{doctor ? doctor.name : 'Adicionar médico'}</DialogTitle>
+        <DialogDescription>
+          {doctor
+            ? 'Edite as informações desse médico.'
+            : 'Adicione um novo médico.'}
+        </DialogDescription>
       </DialogHeader>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -117,7 +134,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="specialty"
@@ -145,7 +161,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="appointmentPrice"
@@ -170,7 +185,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="availableFromWeekDay"
@@ -200,7 +214,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="availableToWeekDay"
@@ -230,7 +243,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="availableFromTime"
@@ -263,11 +275,11 @@ const UpsertDoctorForm = () => {
                       <SelectItem value="10:30:00">10:30</SelectItem>
                       <SelectItem value="11:00:00">11:00</SelectItem>
                       <SelectItem value="11:30:00">11:30</SelectItem>
+                      <SelectItem value="12:00:00">12:00</SelectItem>
+                      <SelectItem value="12:30:00">12:30</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
                       <SelectLabel>Tarde</SelectLabel>
-                      <SelectItem value="12:00:00">12:00</SelectItem>
-                      <SelectItem value="12:30:00">12:30</SelectItem>
                       <SelectItem value="13:00:00">13:00</SelectItem>
                       <SelectItem value="13:30:00">13:30</SelectItem>
                       <SelectItem value="14:00:00">14:00</SelectItem>
@@ -300,7 +312,6 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="availableToTime"
@@ -333,11 +344,11 @@ const UpsertDoctorForm = () => {
                       <SelectItem value="10:30:00">10:30</SelectItem>
                       <SelectItem value="11:00:00">11:00</SelectItem>
                       <SelectItem value="11:30:00">11:30</SelectItem>
+                      <SelectItem value="12:00:00">12:00</SelectItem>
+                      <SelectItem value="12:30:00">12:30</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
                       <SelectLabel>Tarde</SelectLabel>
-                      <SelectItem value="12:00:00">12:00</SelectItem>
-                      <SelectItem value="12:30:00">12:30</SelectItem>
                       <SelectItem value="13:00:00">13:00</SelectItem>
                       <SelectItem value="13:30:00">13:30</SelectItem>
                       <SelectItem value="14:00:00">14:00</SelectItem>
@@ -348,11 +359,11 @@ const UpsertDoctorForm = () => {
                       <SelectItem value="16:30:00">16:30</SelectItem>
                       <SelectItem value="17:00:00">17:00</SelectItem>
                       <SelectItem value="17:30:00">17:30</SelectItem>
+                      <SelectItem value="18:00:00">18:00</SelectItem>
+                      <SelectItem value="18:30:00">18:30</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
                       <SelectLabel>Noite</SelectLabel>
-                      <SelectItem value="18:00:00">18:00</SelectItem>
-                      <SelectItem value="18:30:00">18:30</SelectItem>
                       <SelectItem value="19:00:00">19:00</SelectItem>
                       <SelectItem value="19:30:00">19:30</SelectItem>
                       <SelectItem value="20:00:00">20:00</SelectItem>
@@ -370,10 +381,13 @@ const UpsertDoctorForm = () => {
               </FormItem>
             )}
           />
-
           <DialogFooter>
             <Button type="submit" disabled={upsertDoctorAction.isPending}>
-              {upsertDoctorAction.isPending ? 'Adicionando...' : 'Adicionar'}
+              {upsertDoctorAction.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+
+              {doctor ? 'Atualizar' : 'Adicionar'}
             </Button>
           </DialogFooter>
         </form>
