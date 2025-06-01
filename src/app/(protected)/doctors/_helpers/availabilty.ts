@@ -8,7 +8,9 @@ import { doctorsTable } from '@/db/schema'
 dayjs.extend(utc)
 dayjs.locale('pt-br')
 
-export const getAvailability = (doctor: typeof doctorsTable.$inferSelect) => {
+export const getAvailability = ({
+  ...doctor
+}: typeof doctorsTable.$inferSelect) => {
   const from = dayjs()
     .utc()
     .day(doctor.availableFromWeekDay)
@@ -16,6 +18,7 @@ export const getAvailability = (doctor: typeof doctorsTable.$inferSelect) => {
     .set('minute', Number(doctor.availableFromTime.split(':')[1]))
     .set('second', Number(doctor.availableFromTime.split(':')[2] || 0))
     .local()
+
   const to = dayjs()
     .utc()
     .day(doctor.availableToWeekDay)
